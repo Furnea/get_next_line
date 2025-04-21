@@ -1,0 +1,28 @@
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "get_next_line.h"
+
+
+int main(void)
+{
+	int		fd;
+	char	*line;
+
+	fd = open("file.txt", O_RDONLY);
+	if (fd < 0)
+	{
+		perror("Error al abrir el archivo");
+		return (1);
+	}
+
+	while ((line = get_next_line(fd)) != NULL)
+	{
+		printf("Línea: [%s]\n", line);
+		free(line);
+	}
+
+	close(fd);
+	return (0);
+}
