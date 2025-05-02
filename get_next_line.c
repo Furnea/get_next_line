@@ -1,55 +1,86 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rfurnea <rfurnea@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/27 18:20:33 by rfurnea           #+#    #+#             */
+/*   Updated: 2025/04/27 20:23:08 by rfurnea          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "get_next_line.h"
 
-char	*extract_line(char **remainder)
+int	init_data(char **leftover, char **buffer)
+{
+	*buffer = malloc((BUFFER_SIZE + 1) * sizeof(char));
+	if (!*buffer)
+		return (ERR_ALLOC);
+	if (!*leftover)
+	{
+		*leftover = malloc(1);
+		if (!*leftover)
+		{
+			free(*buffer);
+			return (ERR_ALLOC);
+		}
+		(*leftover)[0] = '\0';
+	}
+	return (ERR_OK);
+}
+
+char	*split_leftover(char **leftover)
 {
 	char	*line;
-	char	*new_remainder;
-	size_t	i = 0;
+	char	*rest;
+	char	*nl;
+	size_t	len;
 
-	if (!*remainder || **remainder == '\0')
-		return (NULL);
-	while ((*remainder)[i] && (*remainder)[i] != '\n')
-		i++;
-	if ((*remainder)[i] == '\n')
-		i++;
-	line = malloc(i + 1);
-	if (!line)
-		return (NULL);
-	ft_memcpy(line, *remainder, i);
-	line[i] = '\0';
-
-	new_remainder = ft_strdup(*remainder + i);
-	free(*remainder);
-	*remainder = new_remainder;
-
-	return (line);
+	nl = gnl_strchr(*leftover, '\n');
+	if (nl)
+	{
+		len = nl - *leftover + 1;
+		line = gnl_substr(*leftover, 0, len);
+		rest = gnl_substr(*leftover, len, gnl_strlen(*leftover) - len);
+		free(*leftover);
+		*leftover = rest;
+		return (line);
+	}
+	if (gnl_strlen(*leftover) > 0)
+	{
+		line = gnl_substr(*leftover, 0, gnl_strlen(*leftover));
+		free(*leftover);
+		*leftover = NULL;
+		return (line);
+	}
+	return (free(leftover), leftover = NULL, NULL);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*aux_str;
-	char		*line;
-	char		buffer[BUFFER_SIZE + 1];
-	int			bytes_read;
+	static char	*leftover;
+	char		*buffer;
+	ssize_t		bytes_read;
+	char		*aux_ptr;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	bytes_read = read(fd, buffer, BUFFER_SIZE);
-	while (bytes_read > 0)
+	if (init_data(&leftover, &buffer) != ERR_OK)
+		return (NULL);
+	bytes_read = 1;
+	while (!gnl_strchr(leftover, '\n') && bytes_read > 0)
 	{
-		buffer[bytes_read] = '\0';
-		aux_str = ft_strjoin(aux_str, buffer);
-		if (ft_strchr(aux_str, '\n'))
-			break;
 		bytes_read = read(fd, buffer, BUFFER_SIZE);
+		if (bytes_read < 0)
+			break ;
+		buffer[bytes_read] = '\0';
+		aux_ptr = gnl_strjoin(leftover, buffer);
+		free(leftover);
+		leftover = aux_ptr;
 	}
-	if(bytes_read < 0)
-		return (free(aux_str), NULL);
-	line = extract_line(&aux_str);
-	if (!line)
-	{
-		free(aux_str);
-		aux_str = NULL;
-	}
-	return (line);
+	free(buffer);
+	if (bytes_read < 0)
+		return (free(leftover), leftover = NULL, NULL);
+	return (split_leftover(&leftover));
 }
