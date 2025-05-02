@@ -1,6 +1,9 @@
 NAME = libgnl.a
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror -g
+
+CC = cc
+BUFFER_SIZE ?= 42
+CFLAGS = -Wall -Wextra -Werror -g -D BUFFER_SIZE=$(BUFFER_SIZE)
+
 AR = ar rcs
 RM = rm -f
 
