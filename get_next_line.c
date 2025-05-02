@@ -6,7 +6,7 @@
 /*   By: rfurnea <rfurnea@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/27 18:20:33 by rfurnea           #+#    #+#             */
-/*   Updated: 2025/04/27 20:23:08 by rfurnea          ###   ########.fr       */
+/*   Updated: 2025/05/02 18:13:15 by rfurnea          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,31 +30,33 @@ int	init_data(char **leftover, char **buffer)
 	return (ERR_OK);
 }
 
-char	*split_leftover(char **leftover)
+char *split_leftover(char **leftover)
 {
-	char	*line;
-	char	*rest;
-	char	*nl;
-	size_t	len;
+    char    *line;
+    char    *rest;
+    char    *nl;
+    size_t  len;
 
-	nl = gnl_strchr(*leftover, '\n');
-	if (nl)
-	{
-		len = nl - *leftover + 1;
-		line = gnl_substr(*leftover, 0, len);
-		rest = gnl_substr(*leftover, len, gnl_strlen(*leftover) - len);
-		free(*leftover);
-		*leftover = rest;
-		return (line);
-	}
-	if (gnl_strlen(*leftover) > 0)
-	{
-		line = gnl_substr(*leftover, 0, gnl_strlen(*leftover));
-		free(*leftover);
-		*leftover = NULL;
-		return (line);
-	}
-	return (free(leftover), leftover = NULL, NULL);
+    nl = gnl_strchr(*leftover, '\n');
+    if (nl)
+    {
+        len   = nl - *leftover + 1;
+        line  = gnl_substr(*leftover, 0, len);
+        rest  = gnl_substr(*leftover, len, gnl_strlen(*leftover) - len);
+        free(*leftover);
+        *leftover = rest;
+        return (line);
+    }
+    if (gnl_strlen(*leftover) > 0)
+    {
+        line = gnl_substr(*leftover, 0, gnl_strlen(*leftover));
+        free(*leftover);
+        *leftover = NULL;
+        return (line);
+    }
+    free(*leftover);
+    *leftover = NULL;
+    return (NULL);
 }
 
 char	*get_next_line(int fd)
